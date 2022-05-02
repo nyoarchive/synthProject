@@ -1,1 +1,1 @@
-Trying to use promises to asynchronously load hand data
+This is a blank p5.js project template. 
