@@ -1,46 +1,27 @@
-let video;
+// -----------------------------------------------------------------------
+// variable declaration
 let poseNet;
-let pose;
-let d;
+let poses = [];
+let video;
 
-let ready = false;
-let masterVolume = -9; // in decibels (dB);
-let faceVolume;
+let prevNote;
+// -----------------------------------------------------------------------
+// p5.js code
 
-let scale;
-
-let synth;
-let currentNote;
-
-let pattern;
-let sequence = [0, 2, 4, 6];
-
-let track;
-
-patternType = [
-  "up", //0
-  "down", //1
-  "upDown", //2
-  "downUp", //3
-  "alternateUp", //4
-  "alternateDown", //5
-  "random", //6
-  "randomOnce", //7
-  "randomWalk", //8
-];
-
-//------------------------------------------------------------
-// ------------------------------------------------------------------
-// Code placed in setup() will run once at the beginning
 function setup() {
-  createCanvas(windowWidth, windowHeight);
+  createCanvas(windowWidth, windowWidth * 0.75);
+
+  // create a capture
   video = createCapture(VIDEO);
+  video.size = (windowWidth, windowHeight);
   video.hide();
+
+  // feed capture to poseNet
   //poseNet init
   poseNet = ml5.poseNet(video, modelLoaded);
-  poseNet.on("pose", gotPoses);
-  //Tonal.js init
-  scale = Tonal.Scale.get("C4 major").notes;
+  poseNet.on("pose", function (results) {
+    poses = results;
+  });
 }
 
 // ------------------------------------------------------------------
@@ -51,122 +32,43 @@ function modelLoaded() {
   console.log("poseNet ready");
 }
 
-// Check for poses
-function gotPoses(poses) {
-  // console.log(poses);
-  if (poses.length > 0) {
-    pose = poses[0].pose;
-  }
-}
-
-//------------------------------------------------------------
-// Place all the Tone.js initialization code here
-function initializeAudio() {
-  track = new Track("16n", "8t", 8);
-  track2 = new Track("8n", "8n", 5, -7);
-  track3 = new Track("4n", "4n", 1, -14);
-  Tone.Master.volume.value = masterVolume;
-  Tone.Transport.start();
-}
-
-// ------------------------------------------------------------------
-// On window resize, update the canvas size
 function windowResized() {
-  resizeCanvas(windowWidth, windowHeight);
+  resizeCanvas(windowWidth, windowWidth * 0.75);
 }
 
 // ------------------------------------------------------------------
-// Main render loop - code placed in draw() will repeat over and over
+// draw
 function draw() {
-  // Place your drawing code here
-  image(video, 0, 0);
+  image(video, 0, 0, width, height);
+  strokeWeight(2);
 
-  if (pose) {
-    let eyeR = pose.rightEye;
-    let eyeL = pose.leftEye;
-    let d = dist(eyeR.x, eyeR.y, eyeL.x, eyeL.y);
-    fill(255, 0, 0);
-    ellipse(pose.nose.x, pose.nose.y, d - 20);
+  //   code for drawing landmarks
+  drawLandmarks(0.5);
 
-    faceVolume = map(d, 50, 300, -30, 6);
-    Tone.Master.volume.value = faceVolume;
+}
 
-    // text(faceVolume, 100, 100);
 
-    // ellipse(pose.leftWrist.x, pose.leftWrist.y, d);
-    // ellipse(pose.rightWrist.x, pose.rightWrist.y, d);
-  }
 
-  if (ready) {
-    noStroke();
-    fill(255);
-    textSize(100);
-    textAlign(CENTER, CENTER);
-    text(track.currentNote, width / 2, height / 2);
-  } else {
-    fill(255);
-    noStroke();
-    textAlign(CENTER, CENTER);
-    text("CLICK TO START", width / 2, height / 2);
+
+function drawLandmarks(confidence) {
+  //   loop through all detected poses
+  for (let i = 0; i < poses.length; i++) {
+    let pose = poses[i].pose;
+
+    // loop through detected landmarks with a confidence above 0.7
+    for (let j = 0; j < pose.keypoints.length; j++) {
+      let landmark = pose.keypoints[j];
+
+      if (landmark.score > confidence) {
+        fill(213, 0, 143);
+        let posX = map(landmark.position.x, 0, 640, 0, windowWidth);
+        let posY = map(landmark.position.y, 0, 480, 0, windowWidth * 0.75);
+        text(landmark.part, posX, posY, 10);
+      }
+    }
   }
 }
 
-//------------------------------------------------------------
 
-function mapNote(noteNumber, scale) {
-  let numNotes = scale.length;
-  let i = modulo(noteNumber, numNotes);
-  let note = scale[i];
-  // ** fixed!  should now work with scales that don't start
-  // in C :-)
-  // thanks to YouTube user Mark Lee for pointing this out!
-  let octaveTranspose = floor(noteNumber / numNotes);
-  let interval = Tonal.Interval.fromSemitones(octaveTranspose * 12);
-  return Tonal.Note.transpose(note, interval);
-}
 
-//------------------------------------------------------------
-function modulo(n, m) {
-  return ((n % m) + m) % m;
-}
 
-//------------------------------------------------------------
-function mousePressed() {
-  if (!ready) {
-    // ! means 'not'
-    ready = true;
-    initializeAudio();
-  }
-}
-
-//------------------------------------------------------------
-// patternType options: "up" | "down" | "upDown" | "downUp" | "alternateUp" | "alternateDown" | "random" | "randomOnce" | "randomWalk"
-class Track {
-  constructor(
-    noteDuration = "8n",
-    interval = "8n",
-    patternIndex = 4,
-    transpose = 0
-  ) {
-    this.patternIndex = patternIndex;
-    this.transpose = transpose;
-    this.noteDuration = noteDuration;
-    this.interval = interval;
-    this.synth = new Tone.AMSynth();
-    this.synth.toDestination();
-
-    this.pattern = new Tone.Pattern(
-      (time, index) => {
-        let note = mapNote(sequence[index] + this.transpose, scale);
-        this.synth.triggerAttackRelease(note, this.noteDuration, time);
-        this.currentNote = note;
-      },
-      Array.from(sequence.keys()),
-      patternType[this.patternIndex]
-    );
-
-    this.pattern.interval = this.interval;
-    this.pattern.start();
-    this.currentNote;
-  }
-}
