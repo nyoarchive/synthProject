@@ -23,10 +23,13 @@
     <script src="https://cdn.jsdelivr.net/npm/@tonaljs/tonal/browser/tonal.min.js"></script>
 
     <!--     tone.js code -->
-    <script src="music.js"></script>
+    <script src="toneGrid.js"></script> 
 
     <!--     p5.js and ml5.js code -->
-    <script src="sketch.js"></script>
+<!--     <script src="sketch.js"></script> -->
+    <script src="toneMidi.js"></script>
+    <!--     classnames module  -->
+    <script src="utils/classnames.js"></script>
 
     <!--     stylesheet -->
     <link rel="stylesheet" href="styles.css" />
@@ -39,8 +42,8 @@
     />
   </head>
   <body>
-  
-    <button class="controllers" id="play-button">Play/Pause</button>
+    <div id="sequencer"></div>
 
+    <button class="play-button" id="play-button">Play/Pause</button>
   </body>
 </html>
