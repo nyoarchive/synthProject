@@ -1,7 +1,7 @@
-.controllers {
+.play-button {
   background-color: white;
   border: 2px solid #555555;
-  margin: 8px 10px;
+  margin: auto;
   padding: 10px 30px;
   font-family: "IBM Plex Mono", monospace;
   font-style: normal;
@@ -11,8 +11,49 @@
   color: #000000;
 }
 
-.controllers:hover {
+.play-button:hover {
   box-shadow: 5px 10px 5px 0 #888888;
 }
 
+.sequencer {
+  border-radius: 5px;
+  width: fit-content;
+  display: grid;
+  grid-template-rows: repeat(6, 1fr);
+  grid-template-columns: fit-content;
+  margin: auto;
+}
+
+.note {
+  border-radius: 5px;
+  height: 2em;
+  width: 2em;
+  border-style: solid;
+  border-width: 1px;
+  border-color: lightgray;
+  margin: 2px;
+  outline: none;
+}
+
+.sequencer-row {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.note-is-active {
+  background-color: green;
+  border: 1px solid black;
+}
+
+.note-not-active {
+  background-color: solid grey;
+}
+
+.toggle-play {
+  display: flex;
+}
+
+canvas {
+  z-index:-1;
+}
 
