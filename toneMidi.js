@@ -6,7 +6,7 @@ class midiAccess {
   start() {
     return new Promise((resolve, reject) => {
       this._requestAccess()
-        .then((access) => {
+        .then(access => {
           this.initialize(access);
           resolve();
         })
@@ -16,7 +16,11 @@ class midiAccess {
 
   initialize(access) {
     const devices = access.inputs.values();
-    for (let device of devices) this.initializeDevice(device);
+    this.devices = [];
+    for (let device of devices) {
+      this.initializeDevice(device);
+      this.devices.push(device);
+    }
   }
 
   initializeDevice(device) {
@@ -24,36 +28,76 @@ class midiAccess {
   }
 
   onMessage(message) {
-    let [, input, value] = message.data;
-    this.onDeviceInput({ input, value });
+    let [address, input, value] = message.data;
+    this.target = message.target;
+    this.message = message;
+    this.onDeviceInput({ address, input, value });
+    return this.target, this.message;
   }
 
   _requestAccess() {
     return new Promise((resolve, reject) => {
       if (navigator.requestMIDIAccess)
-        navigator.requestMIDIAccess().then(resolve).catch(reject);
+        navigator
+          .requestMIDIAccess()
+          .then(resolve)
+          .catch(reject);
       else reject();
     });
   }
 }
 
-function onDeviceInput({ input, value }) {
-  console.log("onDeviceInput!", input, value);
+// function onDeviceInput({ input, value }) {
+//   console.log("onDeviceInput!", input, value);
+// }
+
+const midi = new midiAccess({ onDeviceInput });
+midi
+  .start()
+  .then(() => {
+    for (let i = 0; i < midi.devices.length; i++) {
+      let device = midi.devices[i];
+      console.log(
+        `%c  -- ${device.name} --  \n     Port ID: ${device.id}     `,
+        logSuccess
+      );
+    }
+    console.log("%c MIDI STARTED!", logSuccess);
+  })
+  .catch(console.error);
+
+function onDeviceInput({ address, input, value }) {
+  if (address === 128 || address === 144) {
+    let note = Tonal.Note.fromMidi(input);
+    console.log(`Device: ${midi.target.name}\nnote:${note}, number: ${input}`);
+  } else if (midi.target.name === "MPKmini2") {
+    console.log("MPKmini2", address, input);
+  } else if (midi.target.name === "A-PRO 2") {
+    console.log("A-PRO 2", address, input);
+  } else {
+    console.log(
+      `%c${midi.target.name} has not been configured in toneMidi.js
+      \nAddress: ${address} | Input: ${input} | Value: ${value}`,
+      logWarning
+    );
+  }
 }
 
-function initMidi() {
-  const midi = new midiAccess({ onDeviceInput });
-  midi
-    .start()
-    .then(() => {
-      console.log("MIDI STARTED!");
-    })
-    .catch(console.error);
+// function handleAPRO ({address, input, value}) {
+//   if ()
+// }
 
-  /*function onDeviceInput({ input, value }) {
-    // if (input === 23) {inst.toggleSound(value);}
-    // else if (input === 2) {inst.handleVolume(value);}
-    // else if (input === 14) {inst.handleFilter(value);}
-    // else {console.log("onDeviceInput!", input, value);}
-  }*/
-}
+// CONSOLE STYLES
+const logSuccess = [
+  "color: #52B95F",
+  "display: block",
+  "text-align: center",
+  'font-family: "IBM Plex Mono", monospace',
+  "font-weight: bold"
+].join(";");
+
+
+const logWarning = [
+  "color: #F16D37",
+  'font-family: "IBM Plex Mono", monospace',
+].join(";");
