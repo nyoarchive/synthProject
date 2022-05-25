@@ -69,23 +69,61 @@ midi
 function onDeviceInput({ address, input, value }) {
   if (address === 128 || address === 144) {
     let note = Tonal.Note.fromMidi(input);
-    console.log(`Device: ${midi.target.name}\nnote:${note}, number: ${input}`);
+    handleMIDINote(address, note);
+    console.log(`Device: ${midi.target.name}\nnote:${note}, address: ${address}`);
   } else if (midi.target.name === "MPKmini2") {
     console.log("MPKmini2", address, input);
+    handleCCMessage(address, input, value);
   } else if (midi.target.name === "A-PRO 2") {
     console.log("A-PRO 2", address, input);
   } else {
-    console.log(
-      `%c${midi.target.name} has not been configured in toneMidi.js
-      \nAddress: ${address} | Input: ${input} | Value: ${value}`,
-      logWarning
-    );
+    noMIDI(address, input, value);
   }
 }
 
-// function handleAPRO ({address, input, value}) {
-//   if ()
-// }
+function handleCCMessage(address, input, value){
+  switch(address) {
+  case 176:
+    switch(input){
+    case 1:
+      polySynth.envelope.attack=value;
+      break;
+    case 2:
+      polySynth.envelope.decay=value;
+      break;
+    case 3:
+      polySynth.envelope.release=value;
+      break;
+    default:
+      noMIDI(address, input, value);
+    }
+    break;
+  default:
+    noMIDI(address, input, value);
+
+
+  }
+
+}
+
+
+function handleMIDINote (address, note) {
+  if(address === 144){
+    polySynth.triggerAttackRelease(note, "4n").toDestination("@32n");
+    console.log(`%cPolySynth`);
+  } else {
+    return;
+  }
+}
+
+
+function noMIDI (address, input, value) {
+  console.log(
+    `%c${midi.target.name} has not been configured in toneMidi.js
+  \nAddress: ${address} | Input: ${input} | Value: ${value}`,
+    logWarning
+  );
+}
 
 // CONSOLE STYLES
 const logSuccess = [

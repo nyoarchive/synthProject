@@ -30,7 +30,7 @@
     <!--     tone.js code -->
     <script src="toneInit.js"></script>
     <script src="toneMidi.js"></script>
-    <script src="toneGrid.js"></script>
+    <!-- <script src="toneGrid.js"></script> -->
 
 
 
@@ -45,11 +45,23 @@
     <link
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&display=swap"
       rel="stylesheet"
+
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&display=swap" rel="stylesheet">
     />
   </head>
   <body>
-    <div id="sequencer"></div>
 
-    <button class="play-button" id="play-button">Play/Pause</button>
+    <div id="interface" class="interface">
+      <button class="interface" id="play-button">Play/Pause</button>
+      <div id="pose-xy" class="interface"></div><div id="transport"></div>
+    </div>
+
+
+
+
+
+    <div id="p5-holder"><div>
+
+
   </body>
 </html>
