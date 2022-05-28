@@ -1,6 +1,8 @@
+// CREATES A SEQUENCER. DISCONNECTED FROM MAIN PAGE
+
 // Create synths needed to generate sound;
 
-const makeSynths = (count) => {
+const makeSynths = count => {
   const synths = [];
 
   for (let i = 0; i < count; i++) {
@@ -16,7 +18,7 @@ const makeSynths = (count) => {
       },
       onload: () => {
         console.log("samples loaded");
-      },
+      }
     }).toDestination();
 
     synths.push(samples);
@@ -32,7 +34,7 @@ Each subarray is a note and an isActive property
 ----------------------------------------------------*/
 const bars = 32;
 
-const makeGrid = (notes) => {
+const makeGrid = notes => {
   const rows = [];
 
   for (const note of notes) {
@@ -42,7 +44,7 @@ const makeGrid = (notes) => {
       // each element in the subarray corresponds to one 8th note; currently set to 16 bars
       row.push({
         note: note,
-        isActive: false,
+        isActive: false
       });
     }
     rows.push(row);
@@ -56,18 +58,14 @@ time interval at which to execute to callback
 
 ----------------------------------------------------*/
 
-
-
 const synths = makeSynths(notes.length);
 
 let beat = 0;
 
 const grid = makeGrid(notes);
 
-
-
 const configLoop = () => {
-  const repeat = (time) => {
+  const repeat = time => {
     grid.forEach((row, index) => {
       let synth = synths[index];
       let note = row[beat];
@@ -98,7 +96,7 @@ const makeSequencer = () => {
       const button = document.createElement("button");
       button.className = "note";
 
-      button.addEventListener("click", function (e) {
+      button.addEventListener("click", function(e) {
         handleNoteClick(rowIndex, noteIndex, e);
       });
 
